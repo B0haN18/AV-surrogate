@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-import lstm_encoder_decoder_MTL
+import lstm_encoder_decoder
 
 class loadDataset(Dataset):
     def __init__(self, dataframe, target, features):
@@ -160,12 +160,12 @@ Xtrain  = train_loader_windowed_data[0][0]
 Ytrain  = train_loader_windowed_data[0][1]
 
 
-model = lstm_encoder_decoder_MTL.lstm_seq2seq(input_size = 16, hidden_size = 200)
+model = lstm_encoder_decoder.lstm_seq2seq(input_size = 16, hidden_size = 200)
 
 
-loss = model.train_model_with_fc(train_loader_windowed_data, n_epochs = 20, target_len = 1, batch_size = 1, training_prediction = 'recursive', teacher_forcing_ratio = 0.5, learning_rate = 0.01)
+loss = model.train_model_with_fc(train_loader_windowed_data, n_epochs = 20, target_len = 1, batch_size = 1, training_prediction = 'recursive',learning_rate = 0.01)
 # Specify a path
-PATH = "predict_model_MTL6.pt"
+PATH = "predict_model_MTLtest1.pt"
 
 # Save
 torch.save(model.state_dict(), PATH)

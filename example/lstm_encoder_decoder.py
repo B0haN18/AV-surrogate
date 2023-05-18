@@ -133,7 +133,7 @@ class lstm_seq2seq(nn.Module):
 
         self.encoder = lstm_encoder(input_size = input_size, hidden_size = hidden_size)
         self.decoder = lstm_decoder(input_size = input_size, hidden_size = hidden_size)
-        self.fc = nn.Linear(16, 7)
+        self.fc = nn.Linear(16, 14)
 
 
 
@@ -146,6 +146,7 @@ class lstm_seq2seq(nn.Module):
         #criterion = nn.CrossEntropyLoss()
         # calculate number of batch iterations
         with trange(n_epochs) as tr:
+            print(tr)
             for it in tr:
 
                 batch_loss = 0.
@@ -177,7 +178,7 @@ class lstm_seq2seq(nn.Module):
 
                         # outputs tensor
                         outputs = torch.zeros(target_len, batch_size, input_batch.shape[2])
-                        output_fc = torch.zeros(target_len, batch_size, 1)
+                        #output_fc = torch.zeros(target_len, batch_size, 1)
 
                         # initialize hidden state
                         encoder_hidden = self.encoder.init_hidden(batch_size)
@@ -264,7 +265,7 @@ class lstm_seq2seq(nn.Module):
 
         # initialize tensor for predictions
         outputs = torch.zeros(target_len, input_tensor.shape[2])
-        output_fc = torch.zeros(target_len,  7)
+        output_fc = torch.zeros(target_len,  14)
 
         # decode input_tensor
         decoder_input = input_tensor[-1, :, :]

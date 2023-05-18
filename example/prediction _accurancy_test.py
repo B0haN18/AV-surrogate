@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-import lstm_encoder_decoder_MTL
+import lstm_encoder_decoder_origin
 import csv
 from sklearn.metrics import r2_score
 from torchmetrics import R2Score
@@ -49,7 +49,7 @@ def numpy_to_torch(Xtrain, Ytrain, Xtest, Ytest):
     return X_train_torch, Y_train_torch, X_test_torch, Y_test_torch
 
 
-def windowed_dataset_v2(y,x, input_window = 5, output_window = 1, stride = 1, num_features = 16,num_out =4):
+def windowed_dataset_v2(y,x, input_window = 5, output_window = 1, stride = 1, num_features = 16,num_out =8):
 
     '''
     create a windowed dataset
@@ -88,7 +88,7 @@ def windowed_dataset_v2(y,x, input_window = 5, output_window = 1, stride = 1, nu
 train_file = []
 test_file =[]
 for i in range(1):
-    train_file.append(pd.read_csv('post_dataset/trial'+str(902)+'.csv'))
+    train_file.append(pd.read_csv('post_dataset/trial'+str(302)+'.csv'))
 train_loader =[]
 
 for i in train_file:
@@ -96,11 +96,11 @@ for i in train_file:
 
     train_dataset = loadDataset(
         i,
-        target=["predict_NPC_speed","predict_NPC_location_X","predict_NPC_location_Y","predict_NPC_location_Z"],
-        #"predict_AV_speed","predict_AV_Angle_X","predict_AV_Angle_Y","predict_AV_Angle_Z","predict_AV_location_X","predict_AV_location_Y","predict_AV_location_Z"
+         target=["predict_NPC_speed","predict_NPC_location_X","predict_NPC_location_Y","predict_NPC_location_Z",
+        "predict_AV_speed","predict_AV_location_X","predict_AV_location_Y","predict_AV_location_Z"],
 
-        features=["NPC_speed", "NPC_Angle_X","NPC_Angle_Y","NPC_Angle_Z","NPC_location_X", "NPC_location_Y", "NPC_location_Z",
-         "AV_speed", "AV_angle_X", "AV_angle_Y", "AV_angle_Z","AV_location_X", "AV_location_Y", "AV_location_Z", "NPC_target_speed","NPC_turning_cmd"],
+        features=["NPC_speed", "NPC_location_X", "NPC_location_Y", "NPC_location_Z",
+         "AV_speed","AV_location_X", "AV_location_Y", "AV_location_Z", "NPC_target_speed","NPC_turning_cmd"],
 
 
     )
@@ -112,7 +112,7 @@ for i in train_loader:
 
    for  x,y in i:
 
-       train_loader_windowed_data.append(windowed_dataset_v2(x,y,input_window = 5, output_window = 1 , stride = 1, num_features = 16))
+       train_loader_windowed_data.append(windowed_dataset_v2(x,y,input_window = 5, output_window = 1 , stride = 1, num_features = 10))
        pass
 
 
@@ -120,8 +120,8 @@ Xtrain  = train_loader_windowed_data[0][0]
 Ytrain  = train_loader_windowed_data[0][1]
 #print(Ytrain)
 
-m1 = lstm_encoder_decoder_MTL.lstm_seq2seq(input_size = 16, hidden_size = 200)
-st= torch.load("./predict_model_MTL5.pt")
+m1 = lstm_encoder_decoder_origin.lstm_seq2seq(input_size = 10, hidden_size = 100)
+st= torch.load("./predict_model.pt")
 m1.load_state_dict(st)
 m1.eval()
 
@@ -144,7 +144,7 @@ with open("./test_accurancy.csv", 'w', newline='') as post_trials:
         speed_l2norm =[]
         predict_result= []
 
-        for i in range(5):
+        for i in range(25):
             t1 = train_loader_windowed_data[0][0][0][i:i+5]
             t1 = torch.tensor(t1)
             t1 = t1.float()
@@ -158,17 +158,14 @@ with open("./test_accurancy.csv", 'w', newline='') as post_trials:
             #print(ground_truth_location_x)
             #print("current ground truth is ")
             #print(t1)
-            y = m1.predict(t1, 1)[0]
-            print(m1.predict(t1, 1))
-            predict_speed.append(y[0][0])
-            predict_location_x.append(y[0][4])
-            predict_location_y.append(y[0][5])
-            predict_location_z.append(y[0][6])
-            predict_result.append(y[0])
+            print("current prediction is ")
+            y = m1.predict(t1, 1)
+            print(y)
 
 
 
-            writer.writerow([train_loader_windowed_data[0][1][0][i][0],train_loader_windowed_data[0][1][0][i][1],train_loader_windowed_data[0][1][0][i][2],train_loader_windowed_data[0][1][0][i][3], y[0][0],y[0][1],y[0][2],y[0][3]])
+
+            #writer.writerow([train_loader_windowed_data[0][1][0][i][0],train_loader_windowed_data[0][1][0][i][1],train_loader_windowed_data[0][1][0][i][2],train_loader_windowed_data[0][1][0][i][3], y[0][0],y[0][1],y[0][2],y[0][3]])
 
 
 
@@ -192,7 +189,7 @@ ground_truth_location_z = torch.from_numpy(np.asarray(ground_truth_location_z)).
 
 
 
-
+"""
 r2score = R2Score()
 r2 = r2_score(ground_truth_speed, predict_speed)
 print(" speed evaluation ")
@@ -212,4 +209,4 @@ print(r2)
 #print(r2)
 #print(ground_truth_location_z)
 #print(predict_location_z)
-
+"""

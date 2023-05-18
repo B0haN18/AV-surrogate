@@ -134,9 +134,9 @@ class lstm_seq2seq(nn.Module):
         self.encoder = lstm_encoder(input_size = input_size, hidden_size = hidden_size)
         self.decoder = lstm_decoder(input_size = input_size, hidden_size = hidden_size)
         #self.hideen_NPC = nn.Linear(16, 64)
-        self.fc_npc = nn.Sequential(nn.Linear(16, 64), nn.Linear(64, 7), nn.Sigmoid())
+        self.fc_npc = nn.Sequential(nn.Linear(16, 64), nn.Linear(64, 7))
         #self.hideen_AV = nn.Linear(16, 32)
-        self.fc_av = nn.Sequential(nn.Linear(16, 64), nn.Linear(64, 7) , nn.Sigmoid())
+        self.fc_av = nn.Sequential(nn.Linear(16, 64), nn.Linear(64, 7))
 
 
 
@@ -145,6 +145,7 @@ class lstm_seq2seq(nn.Module):
     def train_model_with_fc(self, dataloader_l, n_epochs, target_len, batch_size, training_prediction = 'recursive', teacher_forcing_ratio = 0.5, learning_rate = 0.01, dynamic_tf = False):
          # initialize array of losses
         losses = np.full(n_epochs, np.nan)
+        sigmoid = nn.Sigmoid()
 
         optimizer = optim.Adam(self.parameters(), lr = learning_rate)
         criterion = nn.MSELoss()
@@ -206,10 +207,10 @@ class lstm_seq2seq(nn.Module):
                                     decoder_input = decoder_output
                                     #print(type(target_batch))
                                     #output_hidden_npc = self.hideen_NPC(decoder_output)
-                                    output_fc_npc = self.fc_npc(decoder_output)
+                                    output_fc_npc = sigmoid(self.fc_npc(decoder_output))
                                     output_fc_L_npc =  output_fc_npc
                                     #output_hidden_av = self.hideen_NPC(decoder_output)
-                                    output_fc_av = self.fc_av(decoder_output)
+                                    output_fc_av = sigmoid( self.fc_av(decoder_output))
                                     output_fc_L_av =  output_fc_av
 
 
@@ -222,10 +223,10 @@ class lstm_seq2seq(nn.Module):
                                     #print(type(target_batch))
                                     #output_fc = self.fc(decoder_output)
                                     output_hidden_npc = self.hideen_NPC(decoder_output)
-                                    output_fc_npc = self.fc_npc(output_hidden_npc)
+                                    output_fc_npc = sigmoid(self.fc_npc(output_hidden_npc))
                                     output_fc_L_npc = torch.cat([output_fc_L_npc,output_fc_npc])
                                     output_hidden_av = self.hideen_NPC(decoder_output)
-                                    output_fc_av = self.fc_av(output_hidden_av)
+                                    output_fc_av = sigmoid(self.fc_av(output_hidden_av))
                                     output_fc_L_av = torch.cat([output_fc_L_av,output_fc_av])
                                     #print(output_fc_L)
 
@@ -252,7 +253,7 @@ class lstm_seq2seq(nn.Module):
                         #batch_loss_av += loss_av.item()
 
                         batch_loss +=  loss_npc.item() + loss_av.item()
-                        loss = loss_npc+loss_av
+                        loss = loss_npc + loss_av
                         # backpropagation
                         loss.backward()
                         #loss_npc.backward(retain_graph=True)
